@@ -12,6 +12,30 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import { useEffect, useState } from "react";
+import { createStackNavigator } from "@react-navigation/stack";
+import { createNavigationContainerRef, NavigationContainer } from "@react-navigation/native";
+
+type Screens = {
+  Home: undefined
+  Another: undefined
+}
+
+const Stack = createStackNavigator<Screens>();
+const navRef = createNavigationContainerRef<Screens>()
+
+function RootStack() {
+  const [stream, setStream] = useState<MediaStream>()
+  useEffect(() => {
+    mediaDevices.getUserMedia({ video: true }).then(s => setStream(s))
+  }, []) 
+
+  return <Stack.Navigator initialRouteName="Home" >
+      <Stack.Screen name="Home">
+        {() => <HomeScreen stream={stream} />}
+      </Stack.Screen>
+      <Stack.Screen name="Another" component={AnotherScreen} />
+    </Stack.Navigator>
+}
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -19,30 +43,36 @@ function App() {
   return (
     <SafeAreaProvider>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent />
+        <NavigationContainer ref={navRef}>
+          <RootStack />
+        </NavigationContainer>
     </SafeAreaProvider>
   );
 }
 
-function AppContent() {
-  const [stream, setStream] = useState<MediaStream>()
-  useEffect(() => {
-    mediaDevices.getUserMedia({ video: true }).then(s => setStream(s))
-  }, []) 
+type Props = {
+  stream: MediaStream | undefined
+}
 
+function HomeScreen({ stream }: Props) {
   const insets = useSafeAreaInsets()
-
   const [maxWidth, setMaxWidth] = useState(false)
-
   return (
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-      <Button title="Press me" onPress={() => setMaxWidth(w => !w)} />
       <View style={{ flexDirection: "row", flex: 1 }}>
         <RTCView streamURL={stream?.toURL()} style={{ flex: 1 }} />
         <View style={{ height: "100%", width: maxWidth ? "100%" : "0%" }} />
       </View>
+      <Button title="Press me" onPress={() => {
+          setMaxWidth(!maxWidth)
+          navRef.current?.navigate("Another")
+        }} />
     </View>
   );
+}
+
+function AnotherScreen() {
+  return <View />
 }
 
 const styles = StyleSheet.create({
