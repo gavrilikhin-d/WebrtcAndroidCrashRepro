@@ -56,13 +56,10 @@ type Props = {
 
 function HomeScreen({ stream }: Props) {
   const insets = useSafeAreaInsets()
-  const [maxWidth, setMaxWidth] = useState(false)
+  const [maxWidth, setMaxWidth] = useState(true)
   return (
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-      <View style={{ flexDirection: "row", flex: 1 }}>
-        <RTCView streamURL={stream?.toURL()} style={{ flex: 1 }} />
-        <View style={{ height: "100%", width: maxWidth ? "100%" : "0%" }} />
-      </View>
+      <RTCView streamURL={stream?.toURL()} style={{ flex: 1, width: maxWidth ? "100%" : "0%" }} />
       <Button title="Press me" onPress={() => {
           setMaxWidth(!maxWidth)
           navRef.current?.navigate("Another")
